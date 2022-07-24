@@ -14,8 +14,12 @@ classdef UR5e < handle
 
     methods
         %% Constructor.
-        function obj = UR5e(host, port)
+        function obj = UR5e(host, port, home)
             obj.UR5e_handle = rtde(host, port);
+            
+            if exist('home', 'var')
+                obj.home = home;
+            end
         end
         
         %% Destructor.
@@ -24,13 +28,14 @@ classdef UR5e < handle
         end
 
         %% Move to home.
-        function rehome(obj)
+        function move_to_home(obj)
             obj.UR5e_handle.movej(obj.home);
         end
         
         %% Execute all moves.
         function execute(obj)
             fprintf("Program started.\n");
+            obj.move_to_home();
             for i = 1:length(obj.moves)
                 pose_as_cell = num2cell(obj.moves(i).pose);
                 fprintf("Moving to [%d, %d, %d, %d, %d, %d]...\n", pose_as_cell{:});
@@ -41,7 +46,7 @@ classdef UR5e < handle
                 obj.joint_acceleration_history = [obj.joint_acceleration_history; joint_acceleration];
                 obj.joint_torque_history = [obj.joint_torque_history; joint_torque];
             end
-            obj.UR5e_handle.movej(obj.home);
+            obj.move_to_home();
             fprintf("Program completed.\n");
         end
 
@@ -52,7 +57,7 @@ classdef UR5e < handle
             end
 
             if draw_joint_position
-                obj.UR5e_handle.drawJointPositions(obj.joint_velocity_history);
+                obj.UR5e_handle.drawJointPositions(obj.joint_position_history);
             end
 
             if draw_joint_velocity

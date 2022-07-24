@@ -3,6 +3,7 @@ classdef UR5eMove
         UR5e_handle;
         move_type = 'l'; % l, j, c.
         pose = zeros(1, 6); % [x, y, z, roll, pitch, yaw].
+        args = {};
         a; % Tool acceleration.
         v; % Tool velocity.
         t; % Time.
@@ -12,36 +13,43 @@ classdef UR5eMove
     
     methods
         %% Constructor.
-        function obj = UR5eMove(move_type, pose)
+        function obj = UR5eMove(move_type, pose, jointOrPose, a, v, t, r, m)
             obj.move_type = move_type;
             obj.pose = pose;
 
-%             if length(varargin) > 2
-%                 if ~isempty(varargin{'a'})
-%                    obj.a = a
-%                    disp("HERE");
-%                 end
-%             end
+            if exist('jointOrPose', 'var')
+                obj.args{1} = jointOrPose;
+            end
+            
+            if exist('a', 'var')
+                obj.args{2} = a;
+            end
+            
+            if exist('v', 'var')
+                obj.args{3} = v;
+            end
+            
+            if exist('t', 'var')
+                obj.args{4} = t;
+            end
+            
+            if exist('r', 'var')
+                obj.args{5} = r;
+            end
+            
+            if exist('m', 'var')
+                obj.args{6} = m;
+            end
         end
         
         %% Execute move.
         function [pose, joint_position, joint_velocity, joint_acceleration, joint_torque] = execute(obj)
-%             vargs = {obj.pose};
-% 
-%             if (obj.move_type == 'l' || obj.move_type == 'j') && ~isempty(obj.a) && ~isempty(obj.v) && ~isempty(obj.t) && ~isempty(obj.r)
-%                 vargs{end + 1} = 'pose';
-%                 vargs = cat(1, [vargs(:)', {obj.a}, {obj.v}, {obj.t}, {obj.r}]);
-%             elseif obj.move_type == 'c' && ~isempty(obj.a) && ~isempty(obj.v) && ~isempty(obj.r) && ~isempty(obj.m)
-%                 vargs{end + 1} = 'pose';
-%                 vargs = cat(1, [vargs(:)', {obj.a}, {obj.v}, {obj.r}, {obj.m}]);
-%             end
-
             if obj.move_type == 'l'
-                [pose, joint_position, joint_velocity, joint_acceleration, joint_torque] = obj.UR5e_handle.movel(obj.pose);
+                [pose, joint_position, joint_velocity, joint_acceleration, joint_torque] = obj.UR5e_handle.movel(obj.pose, obj.args{:});
             elseif obj.move_type == 'j'
-                [pose, joint_position, joint_velocity, joint_acceleration, joint_torque] = obj.UR5e_handle.movej(obj.pose);
+                [pose, joint_position, joint_velocity, joint_acceleration, joint_torque] = obj.UR5e_handle.movej(obj.pose, obj.args{:});
             elseif obj.move_type == 'c'
-                [pose, joint_position, joint_velocity, joint_acceleration, joint_torque] = obj.UR5e_handle.movec(obj.pose);
+                [pose, joint_position, joint_velocity, joint_acceleration, joint_torque] = obj.UR5e_handle.movec(obj.pose, obj.args{:});
             else
                 error("Move type is undefined. Expected 'l', 'j', 'c' but got %c", obj.move_type);
             end
